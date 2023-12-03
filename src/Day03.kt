@@ -94,8 +94,92 @@ fun main() {
         return result
     }
 
+    data class Point(val row: Int, val column: Int)
+
+    fun List<String>.tryAddStar(
+        numberContent: ArrayDeque<Char>,
+        lineIndex: Int,
+        startNumberIndex: Int,
+        endNumberIndex: Int,
+        stars: MutableMap<Point, MutableList<Int>>
+    ) {
+        val pretender = numberContent.toInt() // clean numberContent
+
+        if ((lineIndex - 1) >= 0) {
+
+            val realStart = max(0, startNumberIndex - 1)
+            val realEnd = min(endNumberIndex + 1, this[lineIndex].length)
+
+            for(i in realStart..realEnd) {
+                val char = this[lineIndex - 1][i]
+                if (char  == '*') {
+                    val point = Point(lineIndex - 1, i)
+                    stars.putIfAbsent(point, mutableListOf())
+                    stars[point]!!.add(pretender)
+                }
+            }
+        }
+        if ((lineIndex + 1) <= (this.size - 1)) {
+            val realStart = max(0, startNumberIndex - 1)
+            val realEnd = min(endNumberIndex + 1, this[lineIndex].length)
+
+            for(i in realStart..realEnd) {
+                val char = this[lineIndex + 1][i]
+                if (char  == '*') {
+                    val point = Point(lineIndex + 1, i)
+                    stars.putIfAbsent(point, mutableListOf())
+                    stars[point]!!.add(pretender)
+                }
+            }
+        }
+        if ((startNumberIndex - 1) >= 0) {
+            if (this[lineIndex][startNumberIndex - 1] == '*') {
+                val point = Point(lineIndex, startNumberIndex - 1)
+                stars.putIfAbsent(point, mutableListOf())
+                stars[point]!!.add(pretender)
+            }
+        }
+        if ((endNumberIndex + 1) <= (this[lineIndex].length - 1)) {
+            if (this[lineIndex][endNumberIndex + 1] == '*') {
+                val point = Point(lineIndex, endNumberIndex + 1)
+                stars.putIfAbsent(point, mutableListOf())
+                stars[point]!!.add(pretender)
+            }
+        }
+
+    }
+
     fun part2(input: List<String>): Int {
-        return input.size
+        val stars = mutableMapOf<Point, MutableList<Int>>()
+
+        for ((lineIndex, line) in input.withIndex()) {
+
+            val numberContent = ArrayDeque<Char>()
+            var startIndex = -1
+            var endIndex = -1
+
+            for ((charIndex, char) in line.toCharArray().withIndex()) {
+                if (char.isDigit()) {
+                    numberContent.add(char)
+                    if (startIndex == -1) {
+                        startIndex = charIndex
+                    }
+                } else {
+                    if (startIndex != -1) {
+                        endIndex = charIndex - 1
+                    }
+                    input.tryAddStar(numberContent, lineIndex, startIndex, endIndex, stars)
+                    startIndex = -1
+                    endIndex = -1
+                }
+            }
+            input.tryAddStar(numberContent, lineIndex, startIndex, endIndex, stars)
+        }
+
+        return stars.values.asSequence()
+            .filter { it.size == 2 }
+            .map { it[0] * it[1] }
+            .sum()
     }
 
     val testInput = readInput("Day03_test")
@@ -106,7 +190,7 @@ fun main() {
     val testInput2 = readInput("Day03_test")
     val part2Test = part2(testInput2)
     println("part2Test = $part2Test")
-    check(part2Test == 10)
+    check(part2Test == 467835)
 
     val input = readInput("Day03")
     println("part1 = ${part1(input)}")
