@@ -31,6 +31,10 @@ fun main() {
         }
     }
 
+    fun calcMatching(card: Card): Int = card.ours.asSequence().map {
+        if (card.winners.contains(it)) 1 else 0
+    }.sum()
+
     fun part1(input: List<String>): Int = input.asSequence().map {
         parse(it)
     }.map {
@@ -38,7 +42,27 @@ fun main() {
     }.sum()
 
     fun part2(input: List<String>): Int {
-        return input.size
+        val cardsList = input.asSequence().map {
+            parse(it)
+        }.toList()
+        val cardsMap = cardsList.asSequence().map { it.id to it }.toMap()
+        val cardsCount = cardsList.asSequence().map { it.id to 1 }.toMap().toMutableMap()
+
+        for(key in 1 .. cardsMap.size) {
+            val card = cardsMap[key]!!
+            val count = calcMatching(card)
+
+            val countOfThisLevel = cardsCount[key]!!
+            var counter = 0
+            repeat(count) {
+                ++counter
+                cardsCount[key + counter] = cardsCount[key + counter]!! + countOfThisLevel
+            }
+        }
+
+        val result = cardsCount.values.asSequence().sum()
+
+        return result
     }
 
     val testInput = readInput("Day04_test")
@@ -49,7 +73,7 @@ fun main() {
     val testInput2 = readInput("Day04_test")
     val part2Test = part2(testInput2)
     println("part2Test = $part2Test")
-    check(part2Test == 6)
+    check(part2Test == 30)
 
     val input = readInput("Day04")
     println("part1 = ${part1(input)}")
