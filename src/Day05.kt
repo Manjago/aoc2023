@@ -1,7 +1,23 @@
-fun main() {
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
+
+suspend fun main() {
 
     data class Mapper(val sourceRange: LongRange, val targetStart: Long, val rangeSize: Long)
 
+    fun parseSeedsAsRanges(input: List<String>): List<LongRange> {
+        val pairs = input[0].substringAfter("seeds: ").split(" ").asSequence().map { it.trim() }.map { it.toLong() }.toList()
+        val acc = mutableListOf<LongRange>()
+        for(i in 0 until pairs.size step 2) {
+            val start = pairs[i]
+            val len = pairs[i + 1]
+            val range = LongRange(start, start + len - 1)
+            acc.add(range)
+        }
+        return acc.toList()
+    }
 
     fun parseSeeds(input: List<String>): List<Long> =
         input[0].substringAfter("seeds: ").split(" ").asSequence().map { it.trim() }.map { it.toLong() }.toList()
@@ -48,26 +64,50 @@ fun main() {
         return mapper.targetStart + shift
     }
 
+    fun remap(it: Long, mappers: Map<String, List<Mapper>>): Long {
+        var current = it
+        current = recodeByMappers(current, mappers["seed-to-soil"]!!)
+        current = recodeByMappers(current, mappers["soil-to-fertilizer"]!!)
+        current = recodeByMappers(current, mappers["fertilizer-to-water"]!!)
+        current = recodeByMappers(current, mappers["water-to-light"]!!)
+        current = recodeByMappers(current, mappers["light-to-temperature"]!!)
+        current = recodeByMappers(current, mappers["temperature-to-humidity"]!!)
+        current = recodeByMappers(current, mappers["humidity-to-location"]!!)
+        return current
+    }
+
     fun part1(input: List<String>): Long {
         val seeds = parseSeeds(input)
         val mappers = parseMappers(input)
 
         return seeds.asSequence().map {
-
-            var current = it
-            current = recodeByMappers(current, mappers["seed-to-soil"]!!)
-            current = recodeByMappers(current, mappers["soil-to-fertilizer"]!!)
-            current = recodeByMappers(current, mappers["fertilizer-to-water"]!!)
-            current = recodeByMappers(current, mappers["water-to-light"]!!)
-            current = recodeByMappers(current, mappers["light-to-temperature"]!!)
-            current = recodeByMappers(current, mappers["temperature-to-humidity"]!!)
-            current = recodeByMappers(current, mappers["humidity-to-location"]!!)
-            current
+            remap(it, mappers)
         }.min()
     }
 
-    fun part2(input: List<String>): Long {
-        return input.size.toLong()
+    fun longs(
+        seedRange: LongRange,
+        mappers: Map<String, List<Mapper>>
+    ) = seedRange.asSequence().map {
+        remap(it, mappers)
+    }
+
+    suspend fun part2coroutined(
+        seedRanges: List<LongRange>,
+        mappers: Map<String, List<Mapper>>
+    ): Long {
+        return withContext(Dispatchers.IO) {
+            seedRanges.asSequence().map { seedRange ->
+                async {longs(seedRange, mappers).min()}
+            }.toList().awaitAll().min()
+        }
+    }
+
+    suspend fun part2(input: List<String>): Long {
+        val seedRanges = parseSeedsAsRanges(input)
+        val mappers = parseMappers(input)
+
+        return part2coroutined(seedRanges, mappers)
     }
 
     val testInput = readInput("Day05_test")
@@ -78,9 +118,11 @@ fun main() {
     val testInput2 = readInput("Day05_test")
     val part2Test = part2(testInput2)
     println("part2Test = $part2Test")
-    check(part2Test == 33L)
+    check(part2Test == 46L)
 
     val input = readInput("Day05")
-    println("part1 = ${part1(input)}")
+    val part1 = part1(input)
+    println("part1 = $part1")
+    check(part1 == 662197086L)
     println("part2 = ${part2(input)}")
 }
