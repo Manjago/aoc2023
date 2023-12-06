@@ -29,21 +29,11 @@ fun main() {
         waysToWin(it).size
     }.reduce { acc, i -> i * acc }
 
-    fun part2(input: List<String>): Int {
-        return input.size
-    }
-
     val testInput = readInput("Day06_test")
     val part1Test = part1(testInput)
     println("part1Test = $part1Test")
     check(part1Test == 288)
 
-    val testInput2 = readInput("Day06_test")
-    val part2Test = part2(testInput2)
-    println("part2Test = $part2Test")
-    check(part2Test == 2)
-
     val input = readInput("Day06")
     println("part1 = ${part1(input)}")
-    println("part2 = ${part2(input)}")
 }
