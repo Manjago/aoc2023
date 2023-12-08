@@ -60,25 +60,25 @@ fun main() {
                 FIVE -> throw IllegalStateException("J FIVE")
                 FOUR -> FIVE
                 HOUSE -> throw IllegalStateException("J HOUSE")
-                THREE -> FOUR
-                TWO_PAIR -> HOUSE
-                ONE_PAIR -> TWO_PAIR
-                HIGH -> ONE_PAIR
+                THREE -> FOUR // J2333
+                TWO_PAIR -> HOUSE // 2233J
+                ONE_PAIR -> THREE // JKK23
+                HIGH -> ONE_PAIR // J2345
             }
             2 -> when (handType) {
                 FIVE -> throw IllegalStateException("JJ FIVE")
                 FOUR -> throw IllegalStateException("JJ FOUR")
-                HOUSE -> FIVE
-                THREE -> FOUR
-                TWO_PAIR -> FOUR
-                ONE_PAIR -> THREE
+                HOUSE -> FIVE // JJ333
+                THREE -> throw IllegalStateException("JJ THREE")
+                TWO_PAIR -> FOUR // JJ334
+                ONE_PAIR -> THREE // JJ234
                 HIGH -> throw IllegalStateException("JJ HIGH")
             }
             3 -> when (handType) {
                 FIVE -> throw IllegalStateException("JJJ FIVE")
                 FOUR -> throw IllegalStateException("JJJ FOUR")
-                HOUSE -> FIVE
-                THREE -> FOUR
+                HOUSE -> FIVE // JJJ22
+                THREE -> FOUR // JJJ23
                 TWO_PAIR -> throw IllegalStateException("JJJ TWO_PAIR")
                 ONE_PAIR -> throw IllegalStateException("JJJ ONE_PAIR")
                 HIGH -> throw IllegalStateException("JJJ HIGH")
