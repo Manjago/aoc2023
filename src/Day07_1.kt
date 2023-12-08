@@ -92,21 +92,11 @@ fun main() {
         return result
     }
 
-    fun part2(input: List<String>): Int {
-        return input.size
-    }
-
     val testInput = readInput("Day07_test")
     val part1Test = part1(testInput)
     println("part1Test = $part1Test")
     check(part1Test == 6440L)
 
-    val testInput2 = readInput("Day07_test")
-    val part2Test = part2(testInput2)
-    println("part2Test = $part2Test")
-    check(part2Test == 5)
-
     val input = readInput("Day07")
     println("part1 = ${part1(input)}")
-    println("part2 = ${part2(input)}")
 }
