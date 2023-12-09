@@ -51,8 +51,31 @@ fun main() {
         return addition
     }
 
+    fun predictLast(data: List<Long>): Long {
+
+        val stack = ArrayDeque<List<Long>>()
+        fillStack(data, stack)
+
+        var current = stack.removeLast()
+
+        // now all zeros on stack top
+        check(current.isNotEmpty() && current.allZeros())
+        var addition = 0L
+
+        while (stack.isNotEmpty()) {
+            current = stack.removeLast()
+            addition = current.first() - addition
+            //println("addition $addition for $current")
+        }
+        return addition
+    }
+
     fun part1(input: List<String>): Long = parse(input).map {
         predict(it)
+    }.sum()
+
+    fun part2(input: List<String>): Long = parse(input).map {
+        predictLast(it)
     }.sum()
 
     val testInput = readInput("Day09_test")
@@ -60,6 +83,11 @@ fun main() {
     println("part1Test = $part1Test")
     check(part1Test == 114L)
 
+    val part2Test = part2(testInput)
+    println("part2Test = $part2Test")
+    check(part2Test == 2L)
+
     val input = readInput("Day09")
     println("part1 = ${part1(input)}")
+    println("part2 = ${part2(input)}")
 }
