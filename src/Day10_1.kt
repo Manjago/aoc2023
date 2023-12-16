@@ -3,9 +3,6 @@ import MazeDir.E
 import MazeDir.N
 import MazeDir.S
 import MazeDir.W
-import geometry.Point
-import kotlin.math.max
-import kotlin.math.min
 
 typealias MazeCell = Int
 
@@ -36,6 +33,8 @@ fun main() {
     }
 
     class Maze(private val data: Array<Array<MazeCell>>) {
+
+        fun isValidPoint(point: Point) = point.isValid()
 
         fun Point.isValid(): Boolean = this.y in data.indices && this.x in data[0].indices
 
@@ -112,12 +111,10 @@ fun main() {
         var len = 0
         var prev: Point? = null
         var current = start
-        //println("current(start) = $current")
 
         do {
             val savedCurrent = current
             current = maze.step(savedCurrent, prev)
-            //println("current = $current, start = $start")
             prev = savedCurrent
             ++len
         } while (current != start)
@@ -125,31 +122,10 @@ fun main() {
         return len / 2
     }
 
-    fun Point.intersectCount(polygon: List<Point>): Int {
-        var result = 0
-        val leftPoint = Point(0, this.y)
-        for (i in polygon.indices) {
-            val current = polygon[i]
-            val prev = if (i != 0) polygon[i - 1] else polygon[polygon.size - 1]
-
-            if (current.y == prev.y) { // horizontal
-                continue // just skip
-            } else if (current.x == prev.x) { // vertical
-                val min = min(prev.y, current.y)
-                val max = max(prev.y, current.y)
-                if (this.x > current.x && this.y > min && this.y < max) {
-                  ++result
-                }
-            }
-
-        }
-        return result
-    }
-
     fun toPolygon(loop: List<Point>, maze: Maze): List<Point> = loop.asSequence().filter {
         val cell = maze.getCell(it)
-        val hor = cell == MazeDir.E.bit + MazeDir.W.bit
-        val ver = cell == MazeDir.N.bit + MazeDir.S.bit
+        val hor = cell == E.bit + W.bit
+        val ver = cell == N.bit + S.bit
         !(hor || ver)
     }.toList()
 
@@ -171,43 +147,59 @@ fun main() {
             ++len
         } while (current != start)
 
-        //println(loop.size)
-        //println(loop)
-
         val polygon = toPolygon(loop, maze)
-        println("polygon size ${polygon.size}, $polygon")
 
-        // all points
+        val queue = ArrayDeque<Point>()
+
+        // all border points
         val height = maze.getHeight()
         val width = maze.getWidth()
 
-        var inLoop = 0
         for (x in 0 until width) {
             for (y in 0 until height) {
                 val point = Point(x, y)
                 if (loopSet.contains(point)) {
                     continue
                 }
-
-                if (point.x == 0) {
-                    continue
+                if (point.x == 0 || point.x == (width - 1) || point.y == 0 || point.y == (height - 1)) {
+                    queue += point
                 }
-
-                if (point == Point(5, 5)) {
-                    println("!")
-                }
-                val crossCount = point.intersectCount(polygon)
-                if ((crossCount % 2) == 1) {
-                    println("Point $point crossCount = $crossCount")
-                    println(point)
-                    ++inLoop
-                }
-
             }
-
         }
 
-        return inLoop
+        val shifts = listOf(Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1))
+        val visited = mutableSetOf<Point>()
+        while(queue.isNotEmpty()) {
+            val point = queue.removeFirst()
+            if (visited.contains(point)) {
+                continue
+            }
+            visited.add(point)
+
+            for(shift in shifts) {
+                val pretender = point + shift
+                if (maze.isValidPoint(pretender) && !loopSet.contains(point)) {
+                    queue += pretender
+                }
+            }
+        }
+
+        val inLoop = mutableListOf<Point>()
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                val point = Point(x, y)
+                if (loopSet.contains(point)) {
+                    continue
+                }
+                if (visited.contains(point)) {
+                    continue
+                }
+                inLoop += point
+            }
+        }
+
+        println("inLoop = $inLoop")
+        return inLoop.size
     }
 
     val testInput = readInput("Day10_test")
@@ -216,7 +208,9 @@ fun main() {
     check(part1Test == 8)
 
     val input = readInput("Day10")
-    println("part1 = ${part1(input)}")
+    val part1 = part1(input)
+    println("part1 = $part1")
+    check(part1 == 6690)
 
     val part2 = part2(readInput("Day10_test2"))
     println("part2 = $part2")
